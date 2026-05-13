@@ -253,20 +253,14 @@ function BlendTable({ blends }: { blends: BlendRow[] }) {
     <section className="mt-10">
       <h2 className="text-xl font-semibold">By blend</h2>
       <p className="mt-1 text-sm text-stone-600">
-        The first two columns are the action items for today; the rest are
-        context from NetSuite.
+        The last two columns (blue) are the action items for today; the rest
+        are context from NetSuite.
       </p>
       <div className="mt-3 overflow-x-auto rounded border border-stone-200">
         <table className="min-w-full divide-y divide-stone-200 text-sm">
           <thead className="bg-grace-blue text-white">
             <tr>
               <th className="px-4 py-2 text-left font-medium">Blend</th>
-              <th className="px-4 py-2 text-right font-medium">
-                How much to roast (lbs)
-              </th>
-              <th className="px-4 py-2 text-right font-medium">
-                How much to bag (lbs)
-              </th>
               <th className="px-4 py-2 text-right font-medium">
                 Needed (lbs)
               </th>
@@ -278,6 +272,12 @@ function BlendTable({ blends }: { blends: BlendRow[] }) {
               </th>
               <th className="px-4 py-2 text-right font-medium">
                 To roast or pack (lbs)
+              </th>
+              <th className="px-4 py-2 text-right font-medium">
+                How much to roast (lbs)
+              </th>
+              <th className="px-4 py-2 text-right font-medium">
+                How much to bag (lbs)
               </th>
             </tr>
           </thead>
@@ -297,12 +297,6 @@ function BlendTable({ blends }: { blends: BlendRow[] }) {
                   <td className="px-4 py-2 font-medium text-stone-900 group-hover:bg-grace-blue/5">
                     {b.blend}
                   </td>
-                  <td className="bg-grace-blue/5 px-4 py-2 text-right font-semibold tabular-nums text-grace-blue group-hover:bg-grace-blue/15">
-                    {formatNum(b.howMuchToRoastLbs)}
-                  </td>
-                  <td className="bg-grace-blue/5 px-4 py-2 text-right font-semibold tabular-nums text-grace-blue group-hover:bg-grace-blue/15">
-                    {formatNum(b.howMuchToBagLbs)}
-                  </td>
                   <td className="px-4 py-2 text-right tabular-nums text-stone-500 group-hover:bg-grace-blue/5">
                     {formatNum(b.neededLbs)}
                   </td>
@@ -314,6 +308,12 @@ function BlendTable({ blends }: { blends: BlendRow[] }) {
                   </td>
                   <td className="px-4 py-2 text-right tabular-nums text-stone-500 group-hover:bg-grace-blue/5">
                     {formatNum(b.toRoastOrPackLbs)}
+                  </td>
+                  <td className="bg-grace-blue/5 px-4 py-2 text-right font-semibold tabular-nums text-grace-blue group-hover:bg-grace-blue/15">
+                    {formatNum(b.howMuchToRoastLbs)}
+                  </td>
+                  <td className="bg-grace-blue/5 px-4 py-2 text-right font-semibold tabular-nums text-grace-blue group-hover:bg-grace-blue/15">
+                    {formatNum(b.howMuchToBagLbs)}
                   </td>
                 </tr>
               ))

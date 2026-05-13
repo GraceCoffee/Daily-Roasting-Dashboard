@@ -59,7 +59,14 @@ export async function getLatestSnapshot(): Promise<{
     LIMIT 1
   `) as SnapshotDbRow[];
   if (rows.length === 0) return null;
-  const row = rows[0];
+  return normalizeRow(rows[0]);
+}
+
+function normalizeRow(row: SnapshotDbRow): {
+  snapshotDate: string;
+  createdAt: string;
+  payload: SnapshotPayload;
+} {
   return {
     snapshotDate:
       row.snapshot_date instanceof Date
@@ -70,6 +77,49 @@ export async function getLatestSnapshot(): Promise<{
         ? row.created_at.toISOString()
         : row.created_at,
     payload: row.payload,
+  };
+}
+
+export async function getSnapshotByDate(date: string): Promise<{
+  snapshotDate: string;
+  createdAt: string;
+  payload: SnapshotPayload;
+} | null> {
+  const rows = (await sql()`
+    SELECT snapshot_date, created_at, payload
+    FROM snapshots
+    WHERE snapshot_date = ${date}
+  `) as SnapshotDbRow[];
+  if (rows.length === 0) return null;
+  return normalizeRow(rows[0]);
+}
+
+export async function getSnapshotDateBoundaries(date: string): Promise<{
+  prev: string | null;
+  next: string | null;
+  earliest: string | null;
+  latest: string | null;
+}> {
+  const rows = (await sql()`
+    SELECT
+      (SELECT snapshot_date FROM snapshots WHERE snapshot_date < ${date} ORDER BY snapshot_date DESC LIMIT 1) AS prev,
+      (SELECT snapshot_date FROM snapshots WHERE snapshot_date > ${date} ORDER BY snapshot_date ASC LIMIT 1) AS next,
+      (SELECT MIN(snapshot_date) FROM snapshots) AS earliest,
+      (SELECT MAX(snapshot_date) FROM snapshots) AS latest
+  `) as Array<{
+    prev: string | Date | null;
+    next: string | Date | null;
+    earliest: string | Date | null;
+    latest: string | Date | null;
+  }>;
+  const row = rows[0];
+  const toIso = (v: string | Date | null) =>
+    v === null ? null : v instanceof Date ? v.toISOString().slice(0, 10) : v;
+  return {
+    prev: toIso(row.prev),
+    next: toIso(row.next),
+    earliest: toIso(row.earliest),
+    latest: toIso(row.latest),
   };
 }
 

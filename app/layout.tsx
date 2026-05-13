@@ -20,9 +20,9 @@ export default function RootLayout({
             <img
               src="/gc-logo.svg"
               alt="Grace Coffee"
-              width={64}
-              height={64}
-              className="h-16 w-16"
+              width={80}
+              height={80}
+              className="h-20 w-20"
             />
           </a>
         </div>

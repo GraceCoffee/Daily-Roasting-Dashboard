@@ -96,12 +96,21 @@ Pure functions in `lib/sku.ts` (parseSku returns null for off-pattern SKUs) and 
 
 `npm run build` registers `/api/refresh` as a dynamic Node-runtime route. End-to-end validation against the real NetSuite + Neon happens in Phase 10 (needs prod env vars).
 
-### ⬜ Phase 9 — Build dashboard page + password gate
+### ✅ Phase 9 — Dashboard page + password gate
 
-Server-rendered page reads the latest snapshot from Postgres and renders the two tables. Middleware enforces the shared-password gate.
+- [`middleware.ts`](../middleware.ts) — edge-runtime gate on everything except `/login`, `/api/login`, `/api/logout`, `/api/refresh`. HMAC-SHA256 session cookie signed with `DASHBOARD_PASSWORD` via Web Crypto; rotating the password invalidates all sessions; constant-time compare; HttpOnly + SameSite=Lax + 30-day Max-Age.
+- [`app/page.tsx`](../app/page.tsx) — server-rendered dashboard reading the latest snapshot via `getLatestSnapshot()`, rendering by-blend and by-item tables, warnings banner, empty/error states.
+- [`app/login/page.tsx`](../app/login/page.tsx) + [`app/api/login/route.ts`](../app/api/login/route.ts) + [`app/api/logout/route.ts`](../app/api/logout/route.ts) — plain POST form; open-redirect guard on `from` param.
 
-### ⬜ Phase 10 — Deploy to Vercel and verify end-to-end
+Verified end-to-end against dev server: unauth → 307 to /login; wrong pw → 303 to /login?error=1; right pw → 303 to / + cookie; tampered cookie → 307; /api/refresh stays bearer-gated.
 
-Push to Vercel, set env vars, trigger the refresh route manually once to confirm the full path works, then let the cron run the next morning.
+### ✅ Phase 10 — Deploy to Vercel and verify end-to-end
 
-Add the `Subsidiary = Grace Coffee Roasters LLC` filter to saved search 3084 as part of this phase (carried over from Phase 1.5) so live numbers match Ryan's reference report.
+- NetSuite saved search 3084: added `Subsidiary = Grace Coffee Roasters LLC` filter (carried over from Phase 1.5).
+- Vercel project created under team **Grace Coffee Official**, linked to GitHub `GraceCoffee/Daily-Roasting-Dashboard` (auto-deploys on push to `main`).
+- Neon Postgres attached via Vercel's native Neon integration with env-var prefix `DATABASE` (so vars are named `DATABASE_URL` / `DATABASE_URL_UNPOOLED`, matching our code).
+- 9 production env vars set: 3 non-sensitive NetSuite IDs across all envs; 4 NetSuite TBA secrets + `DASHBOARD_PASSWORD` + `CRON_SECRET` marked Sensitive (Production + Preview only — Vercel disallows sensitive vars in Development).
+- Migration runner ([`scripts/migrate.ts`](../scripts/migrate.ts)) updated to split multi-statement SQL files on `;` because Neon's serverless HTTP driver uses prepared statements (one statement per call).
+- Production URL: **https://daily-roasting-dashboard.vercel.app/**
+- First manual refresh via `/api/refresh` (Bearer `CRON_SECRET`): `{ ok: true, snapshotDate: "2026-05-12", blendCount: 3, itemCount: 5, warnings: [] }`. Ryan confirmed numbers in-browser match operational expectation.
+- **Awaiting:** automated 09:00 UTC cron tomorrow morning (= 5am EDT) to write the first scheduled `2026-05-13` snapshot.

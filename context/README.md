@@ -4,15 +4,16 @@ This folder is the canonical project context for the Daily Roasting Dashboard. I
 
 ## Current status
 
-**Active phase: Phase 9 — dashboard page + password gate.**
+**🚀 Shipped. Production URL: https://daily-roasting-dashboard.vercel.app/** — awaiting first automated cron cycle (next 5am EDT).
 
-Phase 7 done: `lib/sku.ts` (parseSku — null for off-pattern) and `lib/calc.ts` (`calculateSnapshot()`, per-column formula-fingerprint validation that fails loud on schema drift, pack size from the package report's `unit` column not the SKU). Vitest verifies the Phase 5 baseline byte-for-byte against `fixtures/expected_calc_output.json` (which was realigned to `SnapshotPayload` key names so calc output is what gets persisted with no translation layer). 13 tests pass.
+Phase 9 done: Edge-runtime middleware ([`middleware.ts`](../middleware.ts)) gates everything except `/login`, `/api/login`, `/api/logout`, and `/api/refresh` (which has its own bearer-token gate). Session is an HMAC-SHA256 cookie signed with `DASHBOARD_PASSWORD` (so rotating it invalidates all sessions), Web-Crypto based for edge compatibility, 30-day expiry, HttpOnly + SameSite=Lax. Dashboard page ([`app/page.tsx`](../app/page.tsx)) is server-rendered, reads the latest snapshot, renders two tables + warnings banner + empty/error states.
 
-Phase 8 done: `lib/netsuite.ts` exposes a typed `fetchSavedSearch()` that ports the smoke-test OAuth 1.0a + HMAC-SHA256 signing, with a 30s AbortController and clear error reporting. `app/api/refresh/route.ts` (Bearer `CRON_SECRET`-gated) fetches all three searches in parallel, runs the calc, upserts the snapshot keyed by today's date in `America/New_York`. `vercel.json` schedules it daily at `0 9 * * *` UTC (= 4am EST · 5am EDT — accepted DST drift). `npm run build` confirms `/api/refresh` is registered as a dynamic Node-runtime route.
+Phase 10 done: Vercel project linked to `GraceCoffee/Daily-Roasting-Dashboard` under the **Grace Coffee Official** team. Neon Postgres attached via Vercel's native integration (env-var prefix set to `DATABASE` so vars are `DATABASE_URL` / `DATABASE_URL_UNPOOLED`). 9 env vars set in Vercel (3 non-sensitive NetSuite IDs across all envs; 4 NetSuite TBA secrets + `DASHBOARD_PASSWORD` + `CRON_SECRET` sensitive on Production+Preview). Migration applied to prod Neon via `npm run db:migrate` after fixing the runner to split multi-statement SQL files (Neon HTTP driver only accepts one statement per call). First manual seed via `/api/refresh` returned `{ ok: true, blendCount: 3, itemCount: 5, warnings: [] }` and Ryan confirmed the numbers match operational expectation in-browser.
 
-**Owner of next action:** Claude — Phase 9 (server-rendered dashboard page reading the latest snapshot + middleware password gate via `DASHBOARD_PASSWORD`).
+**Open follow-up:** Verify the 09:00 UTC cron fires tomorrow morning and a fresh `2026-05-13`-dated snapshot lands. Passive — just check the dashboard tomorrow morning. If it doesn't, dig into Vercel → Logs → Cron Jobs.
 
-**Open non-blocking follow-up:** Add a `Subsidiary = Grace Coffee Roasters LLC` filter to saved search 3084 to mirror the original report's scope (NetSuite is OneWorld). Must be done before the Phase 10 production deploy so live numbers match Ryan's reference report.
+**Other follow-ups (none blocking):**
+- Saved search 3084 Subsidiary filter — ✅ done during Phase 10.
 
 ## Quick decisions summary
 

@@ -147,7 +147,9 @@ The only business logic the app computes is **how much to roast** and **how much
 
 ### Per-blend (Table 1) — output columns
 
-`Blend | How much to roast | How much to bag | Sum of Coffee Needed in lbs | Sum of Coffee Committed in lbs | Sum of Coffee Roasting in lbs | Sum of coffee to roast or pack in lbs`
+`Blend | Sum of Coffee Needed in lbs | Sum of Coffee Committed in lbs | Sum of Coffee Roasting in lbs | Sum of coffee to roast or pack in lbs | How much to roast | How much to bag`
+
+The two computed action columns ("How much to roast" / "How much to bag") render at the right edge of the table, after the NetSuite passthrough columns, and carry the brand-blue tint described in [Branding](#branding) so they're the visual focus.
 
 The RESTlet returns each saved search as `{ columns: [...], rows: [[...], [...]] }` with rows aligned positionally to the columns array. Calc inputs are accessed by **column index**, validated against a per-column **formula fingerprint** so a column reorder fails loud rather than silently mismaps.
 

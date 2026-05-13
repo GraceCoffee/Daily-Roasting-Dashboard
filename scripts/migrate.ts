@@ -37,11 +37,20 @@ async function main() {
     }
     const sqlText = readFileSync(join(MIGRATIONS_DIR, file), "utf8");
     console.log(`-- apply ${file}`);
-    await sql.query(sqlText);
+    for (const stmt of splitStatements(sqlText)) {
+      await sql.query(stmt);
+    }
     await sql`INSERT INTO schema_migrations (filename) VALUES (${file})`;
   }
 
   console.log("migrations: done");
+}
+
+function splitStatements(sqlText: string): string[] {
+  return sqlText
+    .split(";")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0 && !s.startsWith("--"));
 }
 
 main().catch((err) => {

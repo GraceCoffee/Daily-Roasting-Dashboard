@@ -82,13 +82,19 @@ Scaffolded in-place at the repo root. App Router + TypeScript + Tailwind v4. Dev
 
 **Decision recorded:** `@vercel/postgres` is deprecated (Vercel moved Postgres to Neon as a native integration). We swapped to `@neondatabase/serverless` immediately so we don't pay churn cost later. App-side queries use the pooled `DATABASE_URL`; the migration runner prefers the unpooled URL.
 
-### ⬜ Phase 7 — Implement SKU parser + calc with unit tests
+### ✅ Phase 7 — SKU parser + calc with unit tests
 
-Pure functions in `lib/sku.ts` and `lib/calc.ts`. Tested against fixture JSON payloads from each saved search so the calc can be verified without a NetSuite connection.
+Pure functions in `lib/sku.ts` (parseSku returns null for off-pattern SKUs) and `lib/calc.ts` (`calculateSnapshot()`). Each saved search is validated by column count + per-column formula fingerprint so schema drift fails loud rather than silently mismapping. Pack size comes from the package report's `unit` column directly, not the SKU — sidesteps the inventory-vs-package SKU-convention inconsistency.
 
-### ⬜ Phase 8 — Implement /api/refresh route + Vercel Cron
+[`fixtures/expected_calc_output.json`](../fixtures/expected_calc_output.json) was realigned to `SnapshotPayload` key names (`howMuchToRoastLbs`, `neededLbs`, `unit`) so calc output is byte-equal to what gets persisted — no translation layer. Verified numeric values unchanged. 13 Vitest tests pass; `tsc --noEmit` clean.
 
-The route fetches the three saved searches via the NetSuite client, runs the calc, writes a snapshot row to Postgres. Cron config in `vercel.json` triggers it daily at 4am EST.
+### ✅ Phase 8 — NetSuite client + /api/refresh route + Vercel Cron
+
+- [`lib/netsuite.ts`](../lib/netsuite.ts) — typed `fetchSavedSearch(id)` that ports the smoke-test's OAuth 1.0a + HMAC-SHA256 signing. 30s AbortController; clear error reporting (HTTP status, body preview, JSON-parse failures).
+- [`app/api/refresh/route.ts`](../app/api/refresh/route.ts) — Bearer `CRON_SECRET`-gated GET handler that fetches all three saved searches in parallel, runs the calc, and upserts the snapshot keyed by today's `America/New_York` date.
+- [`vercel.json`](../vercel.json) — cron at `0 9 * * *` (4am EST in standard time, 5am EDT in DST — accepted drift).
+
+`npm run build` registers `/api/refresh` as a dynamic Node-runtime route. End-to-end validation against the real NetSuite + Neon happens in Phase 10 (needs prod env vars).
 
 ### ⬜ Phase 9 — Build dashboard page + password gate
 
@@ -97,3 +103,5 @@ Server-rendered page reads the latest snapshot from Postgres and renders the two
 ### ⬜ Phase 10 — Deploy to Vercel and verify end-to-end
 
 Push to Vercel, set env vars, trigger the refresh route manually once to confirm the full path works, then let the cron run the next morning.
+
+Add the `Subsidiary = Grace Coffee Roasters LLC` filter to saved search 3084 as part of this phase (carried over from Phase 1.5) so live numbers match Ryan's reference report.

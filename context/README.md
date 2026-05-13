@@ -4,15 +4,15 @@ This folder is the canonical project context for the Daily Roasting Dashboard. I
 
 ## Current status
 
-**Active phase: Phase 7 — SKU parser + calc with unit tests.**
+**Active phase: Phase 9 — dashboard page + password gate.**
 
-Phase 6 done: Next.js (App Router + TS + Tailwind v4) is scaffolded in-place. `lib/db.ts` provides typed `@vercel/postgres` helpers; `migrations/0001_init_snapshots.sql` plus `scripts/migrate.ts` (run via `npm run db:migrate`) create a `snapshots(snapshot_date PK, created_at, payload JSONB)` table. Dev server compiles clean and serves 200. `.env.example` updated with `POSTGRES_URL`, `DASHBOARD_PASSWORD`, `CRON_SECRET`.
+Phase 7 done: `lib/sku.ts` (parseSku — null for off-pattern) and `lib/calc.ts` (`calculateSnapshot()`, per-column formula-fingerprint validation that fails loud on schema drift, pack size from the package report's `unit` column not the SKU). Vitest verifies the Phase 5 baseline byte-for-byte against `fixtures/expected_calc_output.json` (which was realigned to `SnapshotPayload` key names so calc output is what gets persisted with no translation layer). 13 tests pass.
 
-NetSuite-side work fully complete. All three saved searches return clean structured data via the RESTlet (Phase 5 verified end-to-end). Today's manual calc numbers (Daily Grace: 0 to roast, 3 to bag · Remmi Blend: 3 to roast, 3 to bag) match operational reality — Ryan confirmed. Real response bodies are saved as fixtures under [fixtures/](../fixtures/) and become the baseline for Phase 7 unit tests.
+Phase 8 done: `lib/netsuite.ts` exposes a typed `fetchSavedSearch()` that ports the smoke-test OAuth 1.0a + HMAC-SHA256 signing, with a 30s AbortController and clear error reporting. `app/api/refresh/route.ts` (Bearer `CRON_SECRET`-gated) fetches all three searches in parallel, runs the calc, upserts the snapshot keyed by today's date in `America/New_York`. `vercel.json` schedules it daily at `0 9 * * *` UTC (= 4am EST · 5am EDT — accepted DST drift). `npm run build` confirms `/api/refresh` is registered as a dynamic Node-runtime route.
 
-**Owner of next action:** Claude — Phase 7 (`lib/sku.ts` + `lib/calc.ts` + Vitest tests against the fixtures). Postgres client choice is settled (Neon serverless).
+**Owner of next action:** Claude — Phase 9 (server-rendered dashboard page reading the latest snapshot + middleware password gate via `DASHBOARD_PASSWORD`).
 
-**Open non-blocking follow-up:** Add a `Subsidiary = Grace Coffee Roasters LLC` filter to saved search 3084 to mirror the original report's scope (NetSuite is OneWorld). Can happen in parallel with Phase 2; must be done before the Phase 5 smoke test.
+**Open non-blocking follow-up:** Add a `Subsidiary = Grace Coffee Roasters LLC` filter to saved search 3084 to mirror the original report's scope (NetSuite is OneWorld). Must be done before the Phase 10 production deploy so live numbers match Ryan's reference report.
 
 ## Quick decisions summary
 

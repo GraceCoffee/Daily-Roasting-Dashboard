@@ -13,7 +13,21 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-stone-50 text-stone-900 antialiased">{children}</body>
+      <body className="bg-stone-50 text-stone-900 antialiased">
+        <div className="flex justify-center pt-6 pb-2">
+          <a href="/" aria-label="Grace Coffee — home" className="block">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/gc-logo.svg"
+              alt="Grace Coffee"
+              width={64}
+              height={64}
+              className="h-16 w-16"
+            />
+          </a>
+        </div>
+        {children}
+      </body>
     </html>
   );
 }

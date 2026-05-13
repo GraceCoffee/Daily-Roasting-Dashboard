@@ -9,7 +9,7 @@ export default async function LoginPage({
 }) {
   const params = await searchParams;
   return (
-    <main className="mx-auto max-w-md px-6 py-24">
+    <main className="mx-auto max-w-md px-6 pt-12 pb-24">
       <h1 className="text-2xl font-semibold tracking-tight">
         Grace Coffee — Roasting Dashboard
       </h1>

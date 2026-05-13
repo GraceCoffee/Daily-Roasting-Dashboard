@@ -1,44 +1,45 @@
 {
   "_capturedAt": "2026-05-09T00:16:54Z",
-  "_note": "Expected output from running calc against roast_search_3062.json + package_search_3083.json + inventory_search_3084.json. Confirmed by Ryan to match operational reality on 2026-05-09. Phase 7 unit tests must reproduce this exactly.",
-  "blendTable": [
+  "_note": "Expected output from running calc against roast_search_3062.json + package_search_3083.json + inventory_search_3084.json. Confirmed by Ryan to match operational reality on 2026-05-09. Key names match SnapshotPayload in lib/db.ts. Phase 7 unit tests must reproduce this exactly.",
+  "blends": [
     {
       "blend": "Daily Grace",
-      "howMuchToRoast": 0,
-      "howMuchToBag": 3,
-      "sumOfCoffeeNeededInLbs": 3,
-      "sumOfCoffeeCommittedInLbs": 0,
-      "sumOfCoffeeRoastingInLbs": 0,
-      "sumOfCoffeeToRoastOrPackInLbs": 3
+      "howMuchToRoastLbs": 0,
+      "howMuchToBagLbs": 3,
+      "neededLbs": 3,
+      "committedLbs": 0,
+      "roastingLbs": 0,
+      "toRoastOrPackLbs": 3
     },
     {
       "blend": "Remmi Blend",
-      "howMuchToRoast": 3,
-      "howMuchToBag": 3,
-      "sumOfCoffeeNeededInLbs": 3,
-      "sumOfCoffeeCommittedInLbs": 0,
-      "sumOfCoffeeRoastingInLbs": 0,
-      "sumOfCoffeeToRoastOrPackInLbs": 3
+      "howMuchToRoastLbs": 3,
+      "howMuchToBagLbs": 3,
+      "neededLbs": 3,
+      "committedLbs": 0,
+      "roastingLbs": 0,
+      "toRoastOrPackLbs": 3
     }
   ],
-  "itemTable": [
+  "items": [
     {
       "item": "Daily Grace : GCDG01-W12",
-      "units": "12 oz Bag",
-      "sumOfUnitsSold": 4,
-      "sumOfUnitsCommitted": 0,
-      "sumOfUnitsNotRoasted": 0,
-      "sumOfUnitsInRoasting": 0,
-      "sumOfUnitsToAssemble": 4
+      "unit": "12 oz Bag",
+      "unitsSold": 4,
+      "unitsCommitted": 0,
+      "unitsNotRoasted": 0,
+      "unitsInRoasting": 0,
+      "unitsToAssemble": 4
     },
     {
       "item": "Remmi Blend : GCRB01-W12",
-      "units": "12 oz Bag",
-      "sumOfUnitsSold": 4,
-      "sumOfUnitsCommitted": 0,
-      "sumOfUnitsNotRoasted": 0,
-      "sumOfUnitsInRoasting": 0,
-      "sumOfUnitsToAssemble": 4
+      "unit": "12 oz Bag",
+      "unitsSold": 4,
+      "unitsCommitted": 0,
+      "unitsNotRoasted": 0,
+      "unitsInRoasting": 0,
+      "unitsToAssemble": 4
     }
-  ]
+  ],
+  "warnings": []
 }

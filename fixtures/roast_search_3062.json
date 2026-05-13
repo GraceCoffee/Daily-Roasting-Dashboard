@@ -1,0 +1,62 @@
+{
+  "savedSearchId": "3062",
+  "rowCount": 2,
+  "columns": [
+    {
+      "index": 0,
+      "name": "formulatext",
+      "label": "Formula (Text)",
+      "formula": "REGEXP_SUBSTR({item}, '^[^:]+')",
+      "type": null,
+      "join": null,
+      "summary": "GROUP",
+      "sortDir": "NONE"
+    },
+    {
+      "index": 1,
+      "name": "formulanumeric",
+      "label": "Formula (Numeric)",
+      "formula": "CASE  WHEN {unit} LIKE '12 oz Bag' THEN {quantity} * .75 WHEN {unit} LIKE '2 oz Bag' THEN {quantity} * .125 WHEN {unit} LIKE '5 lb Bag' THEN {quantity} * 5 ELSE 0 END",
+      "type": null,
+      "join": null,
+      "summary": "SUM",
+      "sortDir": "NONE"
+    },
+    {
+      "index": 2,
+      "name": "formulanumeric",
+      "label": "Formula (Numeric)",
+      "formula": "SUM(     CASE          WHEN {unit} LIKE '12 oz Bag' THEN NVL({quantitycommitted},0) * 0.75         WHEN {unit} LIKE '2 oz Bag' THEN NVL({quantitycommitted},0) * 0.125         WHEN {unit} LIKE '5 lb Bag' THEN NVL({quantitycommitted},0) * 5         ELSE 0     END )",
+      "type": null,
+      "join": null,
+      "summary": "SUM",
+      "sortDir": "NONE"
+    },
+    {
+      "index": 3,
+      "name": "formulanumeric",
+      "label": "Formula (Numeric)",
+      "formula": "CASE  WHEN {custcolcustcol9} = 'Roasting' AND {unit} LIKE '12 oz Bag' THEN GREATEST(NVL({quantity},0) - NVL({quantitycommitted},0),0) * 0.75 WHEN {custcolcustcol9} = 'Roasting' AND {unit} LIKE '2 oz Bag' THEN GREATEST(NVL({quantity},0) - NVL({quantitycommitted},0),0) * 0.125 WHEN {custcolcustcol9} = 'Roasting' AND {unit} LIKE '5 lb Bag' THEN GREATEST(NVL({quantity},0) - NVL({quantitycommitted},0),0) * 5 ELSE 0 END",
+      "type": null,
+      "join": null,
+      "summary": "SUM",
+      "sortDir": "NONE"
+    },
+    {
+      "index": 4,
+      "name": "formulanumeric",
+      "label": "Formula (Numeric)",
+      "formula": "GREATEST(     SUM(         CASE              WHEN {unit} LIKE '12 oz Bag' THEN NVL({quantity},0) * 0.75             WHEN {unit} LIKE '2 oz Bag' THEN NVL({quantity},0) * 0.125             WHEN {unit} LIKE '5 lb Bag' THEN NVL({quantity},0) * 5             ELSE 0         END     )     -     SUM(         CASE              WHEN {unit} LIKE '12 oz Bag' THEN NVL({quantitycommitted},0) * 0.75             WHEN {unit} LIKE '2 oz Bag' THEN NVL({quantitycommitted},0) * 0.125             WHEN {unit} LIKE '5 lb Bag' THEN NVL({quantitycommitted},0) * 5             ELSE 0         END     )     -     SUM(         CASE              WHEN {custcolcustcol9} = 'Roasting' AND {unit} LIKE '12 oz Bag' THEN NVL({quantity},0) * 0.75             WHEN {custcolcustcol9} = 'Roasting' AND {unit} LIKE '2 oz Bag' THEN NVL({quantity},0) * 0.125             WHEN {custcolcustcol9} = 'Roasting' AND {unit} LIKE '5 lb Bag' THEN NVL({quantity},0) * 5             ELSE 0         END     ), 0 )",
+      "type": null,
+      "join": null,
+      "summary": "SUM",
+      "sortDir": "NONE"
+    }
+  ],
+  "rows": [
+    ["Remmi Blend ", "3", "0", "0", "3"],
+    ["Daily Grace ", "3", "0", "0", "3"]
+  ],
+  "_capturedAt": "2026-05-09T00:10:05Z",
+  "_note": "Captured at end of Phase 5 smoke test; semantic column meaning by index: 0=blend name, 1=Total Coffee Needed in lbs, 2=Coffee Committed in lbs, 3=Coffee Roasting in lbs, 4=Coffee to Roast or Pack in lbs"
+}

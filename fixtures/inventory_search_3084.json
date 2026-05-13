@@ -1,0 +1,96 @@
+{
+  "savedSearchId": "3084",
+  "rowCount": 26,
+  "columns": [
+    {
+      "index": 0,
+      "name": "type",
+      "label": "Type",
+      "formula": null,
+      "type": null,
+      "join": null,
+      "summary": "GROUP",
+      "sortDir": "NONE"
+    },
+    {
+      "index": 1,
+      "name": "externalid",
+      "label": "External ID",
+      "formula": null,
+      "type": null,
+      "join": null,
+      "summary": "GROUP",
+      "sortDir": "ASC"
+    },
+    {
+      "index": 2,
+      "name": "displayname",
+      "label": "Display Name",
+      "formula": null,
+      "type": null,
+      "join": null,
+      "summary": "GROUP",
+      "sortDir": "NONE"
+    },
+    {
+      "index": 3,
+      "name": "quantityavailable",
+      "label": "Available",
+      "formula": null,
+      "type": null,
+      "join": "binOnHand",
+      "summary": "SUM",
+      "sortDir": "NONE"
+    },
+    {
+      "index": 4,
+      "name": "internalid",
+      "label": "Internal ID",
+      "formula": null,
+      "type": null,
+      "join": null,
+      "summary": "GROUP",
+      "sortDir": "NONE"
+    },
+    {
+      "index": 5,
+      "name": "formulanumeric",
+      "label": "Formula (Numeric)",
+      "formula": "CASE WHEN {binonhand.binnumber} IN ('Outbound Staging','Returns','Returns Staging Bin') THEN 0      ELSE NVL({binonhand.quantityavailable}, 0) END",
+      "type": null,
+      "join": null,
+      "summary": "SUM",
+      "sortDir": "NONE"
+    }
+  ],
+  "rows": [
+    ["Inventory Item", "- None -", "Green - Ethiopian Sidamo", "107.14063", "16814", "107.14063"],
+    ["Inventory Item", "- None -", "Green - Sumatara Mandheling", "119.96063", "16922", "119.96063"],
+    ["Inventory Item", "- None -", "Green - Luma Decaf", "132.28", "16923", "132.28"],
+    ["Inventory Item", "- None -", "Green - Colombian Supremo", "704.6925", "16812", "704.6925"],
+    ["Inventory Item", "- None -", "Green - Guatemala", "141.81063", "16924", "141.81063"],
+    ["Inventory Item", "- None -", "Green - Brazil Santos", "85.67188", "16813", "85.67188"],
+    ["Inventory Item", "GCBM01GCB", "Grace Coffee - Bubble Mailer 1 Coffee Bag", "100", "14955", "100"],
+    ["Inventory Item", "GCBM02GCB", "Grace Coffee - Bubble Mailer 2 Coffee Bags", "50", "14951", "50"],
+    ["Inventory Item", "GCBM04GCB", "Grace Coffee - Bubble Mailer 4 Coffee Bags", "30", "14944", "30"],
+    ["Inventory Item", "GCBRACELET01", "Grace Coffee - Bracelet", "100", "14946", "100"],
+    ["Assembly", "GCDG01", "Daily Grace Bulk", "14.075", "16809", "14.075"],
+    ["Assembly", "GCDG01-W", "Daily Grace - Whole 12oz", "0", "17241", "0"],
+    ["Assembly", "GCDG01-W2", "Daily Grace - Whole 2oz", "0", "17242", "0"],
+    ["Assembly", "GCDG01-W5", "Daily Grace - Whole 5lb", "0", "17243", "0"],
+    ["Assembly", "GCES01", "Ethiopian Sidamo Bulk", "0", "16822", "0"],
+    ["Assembly", "GCES01-W", "Ethiopian Sidamo - Whole 12oz", "0", "16825", "0"],
+    ["Inventory Item", "GCGCB01", "Grace Coffee - General Coffee Bags", "100", "14953", "100"],
+    ["Inventory Item", "GCGSCB01", "Grace Coffee - Generic Sample Coffee Bags", "200", "14954", "200"],
+    ["Inventory Item", "GCMUG01", "Grace Coffee - Mug", "20", "14948", "20"],
+    ["Assembly", "GCRB01", "Remmi Blend Bulk", "0", "17040", "0"],
+    ["Assembly", "GCRB01-G", "Remmi Blend - Ground 12oz", "0", "17041", "0"],
+    ["Assembly", "GCRB01-W", "Remmi Blend - Whole 12oz", "1", "17043", "1"],
+    ["Assembly", "GCSB01", "Sunny Blend Bulk", "0", "16827", "0"],
+    ["Assembly", "GCSB01-W", "Sunny Blend - Whole 12oz", "1", "16928", "1"],
+    ["Assembly", "GCSB01-W5", "Sunny Blend - Whole 5lb", "3", "16929", "3"],
+    ["Inventory Item", "GCTUMBLER01", "Grace Coffee - Tumbler", "77", "14956", "77"]
+  ],
+  "_capturedAt": "2026-05-09T00:16:54Z",
+  "_note": "Captured at end of Phase 5 smoke test; semantic column meaning by index: 0=type, 1=external ID (SKU), 2=display name (match key — filter where endsWith ' Bulk'), 3=available qty (per bin), 4=internal ID, 5=on-hand minus excluded bins (preferred over col 3)"
+}

@@ -1,0 +1,82 @@
+{
+  "savedSearchId": "3083",
+  "rowCount": 2,
+  "columns": [
+    {
+      "index": 0,
+      "name": "item",
+      "label": "Item",
+      "formula": null,
+      "type": null,
+      "join": null,
+      "summary": "GROUP",
+      "sortDir": "NONE"
+    },
+    {
+      "index": 1,
+      "name": "unit",
+      "label": "Units",
+      "formula": null,
+      "type": null,
+      "join": null,
+      "summary": "GROUP",
+      "sortDir": "NONE"
+    },
+    {
+      "index": 2,
+      "name": "quantityuom",
+      "label": "Quantity in Transaction Units",
+      "formula": null,
+      "type": null,
+      "join": null,
+      "summary": "SUM",
+      "sortDir": "NONE"
+    },
+    {
+      "index": 3,
+      "name": "formulanumeric",
+      "label": "Formula (Numeric)",
+      "formula": "SUM(     CASE          WHEN {unit} IN ('12 oz Bag','2 oz Bag','5 lb Bag')          THEN NVL({quantitycommitted},0)         ELSE 0     END )",
+      "type": null,
+      "join": null,
+      "summary": "SUM",
+      "sortDir": "NONE"
+    },
+    {
+      "index": 4,
+      "name": "formulanumeric",
+      "label": "Formula (Numeric)",
+      "formula": "CASE  WHEN {custcolcustcol9} = 'Not Roasted' THEN GREATEST(NVL({quantity},0) - NVL({quantitycommitted},0), 0) ELSE 0 END",
+      "type": null,
+      "join": null,
+      "summary": "SUM",
+      "sortDir": "NONE"
+    },
+    {
+      "index": 5,
+      "name": "formulanumeric",
+      "label": "Formula (Numeric)",
+      "formula": "CASE  WHEN {custcolcustcol9} = 'Roasting' THEN GREATEST(NVL({quantity},0) - NVL({quantitycommitted},0), 0) ELSE 0 END",
+      "type": null,
+      "join": null,
+      "summary": "SUM",
+      "sortDir": "NONE"
+    },
+    {
+      "index": 6,
+      "name": "formulanumeric",
+      "label": "Formula (Numeric)",
+      "formula": "SUM(NVL({quantity},0))  -  SUM(NVL({quantitycommitted},0))",
+      "type": null,
+      "join": null,
+      "summary": "SUM",
+      "sortDir": "NONE"
+    }
+  ],
+  "rows": [
+    ["Daily Grace : GCDG01-W12", "12 oz Bag", "4", "0", "0", "0", "4"],
+    ["Remmi Blend : GCRB01-W12", "12 oz Bag", "4", "0", "0", "0", "4"]
+  ],
+  "_capturedAt": "2026-05-09T00:16:52Z",
+  "_note": "Captured at end of Phase 5 smoke test; semantic column meaning by index: 0=item, 1=units (pack size string), 2=units sold, 3=units committed, 4=units not roasted, 5=units in roasting, 6=units to assemble"
+}

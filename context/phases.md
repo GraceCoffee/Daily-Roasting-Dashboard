@@ -114,3 +114,36 @@ Verified end-to-end against dev server: unauth → 307 to /login; wrong pw → 3
 - Production URL: **https://daily-roasting-dashboard.vercel.app/**
 - First manual refresh via `/api/refresh` (Bearer `CRON_SECRET`): `{ ok: true, snapshotDate: "2026-05-12", blendCount: 3, itemCount: 5, warnings: [] }`. Ryan confirmed numbers in-browser match operational expectation.
 - **Awaiting:** automated 09:00 UTC cron tomorrow morning (= 5am EDT) to write the first scheduled `2026-05-13` snapshot.
+
+## Post-ship UI extensions
+
+### ✅ Phase 11 — Historical date selector
+
+`?date=YYYY-MM-DD` query param on the dashboard lets the team look back at past snapshots. New DB helpers [`getSnapshotByDate()`](../lib/db.ts) and [`getSnapshotDateBoundaries()`](../lib/db.ts) return the requested snapshot plus prev/next/earliest/latest neighbor dates in a single round trip.
+
+Header date control: prev arrow + native date input + next arrow, plus a "Latest" button when not on the most recent snapshot. Arrows are constrained to dates we actually have. Invalid or missing date param falls through to the latest snapshot; picking a date with no recorded snapshot renders a contextual "no snapshot for {date}" empty state with a back-to-latest affordance. Date input is a tiny client component ([`app/_components/DatePicker.tsx`](../app/_components/DatePicker.tsx)) so onChange can navigate immediately.
+
+### ✅ Phase 12 — Grace brand styling
+
+- [`app/globals.css`](../app/globals.css) defines `--color-grace-blue: #2b27e7` via Tailwind v4's `@theme` so we can use `bg-grace-blue`, `text-grace-blue`, and opacity variants (`bg-grace-blue/5`, `/15`) anywhere.
+- Table headers in both tables: solid grace-blue with white text.
+- Action columns ("How much to roast" / "How much to bag" in the blend table, "To assemble" in the item table) have a faint grace-blue tint by default and bold blue numerals — so the action items pop visually vs. passthrough columns.
+- Body rows highlight on hover via `group-hover`, with the action cells getting an extra-strong tint so they stay prominent.
+- GC logo at [`public/gc-logo.svg`](../public/gc-logo.svg) is rendered top-center on every page in the root layout at 80×80px, wrapped in a link back to `/`. The asset is a PNG-wrapped-in-SVG (the design tool exported a raster image with .svg extension) — display is fine; can be swapped for a true vector later.
+
+### ✅ Phase 13 — Manual refresh button
+
+- [`app/_components/RefreshButton.tsx`](../app/_components/RefreshButton.tsx) (client component) sits next to "Sign out" in the dashboard header. On click it `fetch("/api/refresh")` same-origin (so the `dashboard_session` cookie rides along), then calls `router.refresh()` to re-render the page with the new snapshot. Shows a "Refreshing…" loading state and surfaces any error inline.
+- [`app/api/refresh/route.ts`](../app/api/refresh/route.ts) now accepts **either** a Bearer `CRON_SECRET` header (for Vercel Cron) **or** a valid `dashboard_session` cookie (for logged-in users hitting the button). New `isAuthorized()` helper covers both paths; the route still upserts into the same `snapshots(snapshot_date PK)` row so an intra-day refresh overwrites the morning cron's snapshot for that date.
+- Vercel Cron schedule **kept at daily** `0 9 * * *` — Hobby plan caps cron at one invocation per day, and the button covers ad-hoc intra-day needs. Could go hourly on Pro plan if/when desirable.
+
+## Parked
+
+### 🅿️ Shopify integration (deferred)
+
+Ryan wants the team to access the dashboard via their Shopify login. Three possible flavors:
+1. **SSO via Shopify OAuth** — replace the shared `DASHBOARD_PASSWORD` gate with "Sign in with Shopify." Lightest lift.
+2. **Embedded Shopify App** — dashboard renders as a tab inside `admin.shopify.com`. Heaviest (App Bridge, iframe sandbox, embedded-app UX conventions).
+3. **Public Shopify App Store listing** — almost certainly not what's wanted for an internal tool.
+
+Deferred until the team weighs in on which flavor they want. Each is a multi-day project with external moving parts (Shopify Partner Dashboard setup, OAuth credentials, callback URLs).

@@ -9,32 +9,47 @@ Web app for the Grace Coffee roastery that tells the team, every morning at 4am 
 - **Framework:** Next.js (App Router) + TypeScript
 - **Hosting:** Vercel
 - **Persistence:** Neon Postgres via Vercel's native Neon integration, accessed through `@neondatabase/serverless` (every daily snapshot is stored — history retained). `@vercel/postgres` was deprecated when Vercel migrated all Postgres databases to Neon, so we use Neon's SDK directly.
+  > ⚠️ **Neon's HTTP driver uses prepared statements under the hood and rejects multi-statement strings** with `cannot insert multiple commands into a prepared statement`. Anything that runs raw SQL (e.g., `scripts/migrate.ts`) must split on `;` and submit one statement per call. Tagged-template usage (`sql\`SELECT ...\``) is fine — always single statement.
 - **Scheduling:** Vercel Cron, daily at 4:00am EST (09:00 UTC; will need DST-aware handling if EST/EDT shifts matter)
 - **Auth:** Password-protected via env var (single shared password)
 - **Styling:** Tailwind
 
-### Planned file layout (not yet built)
+### File layout
 
 ```
 app/
-  layout.tsx            # root layout (scaffolded in Phase 6)
-  page.tsx              # dashboard UI (two tables)
-  globals.css           # Tailwind v4 entry
+  layout.tsx                    # root layout — renders GC logo top-center, wraps every page
+  page.tsx                      # dashboard UI — by-blend + by-item tables, date selector, warnings
+  globals.css                   # Tailwind v4 entry; defines --color-grace-blue via @theme
+  login/page.tsx                # password gate UI
   api/
-    refresh/route.ts    # cron-triggered NetSuite pull + calc + DB write
+    login/route.ts              # POST: sets HMAC-signed session cookie
+    logout/route.ts             # POST: clears cookie, redirects to /login
+    refresh/route.ts            # GET: NetSuite pull + calc + Neon upsert (Bearer CRON_SECRET *or* session cookie)
+  _components/
+    DatePicker.tsx              # tiny client component — native date input that navigates on change
+    RefreshButton.tsx           # client component — POSTs to /api/refresh and re-renders on success
 lib/
-  db.ts                 # Neon serverless client + snapshot helpers (Phase 6)
-  netsuite.ts           # TBA-signed RESTlet client (OAuth 1.0a)
-  sku.ts                # parseSku() — blend code, type, size
-  calc.ts               # pure calc: 3 reports → blend table + item table
+  auth.ts                       # HMAC-SHA256 session-token helpers (Web Crypto, edge-compatible)
+  calc.ts                       # pure calc: 3 RESTlet responses → SnapshotPayload
+  calc.test.ts                  # Vitest — calc against captured fixtures + drift cases
+  db.ts                         # Neon client + getLatestSnapshot / getSnapshotByDate / upsertSnapshot
+  netsuite.ts                   # TBA-signed RESTlet client (OAuth 1.0a)
+  sku.ts                        # parseSku() + extractSkuFromItemName()
+  sku.test.ts                   # Vitest — SKU parser cases
+middleware.ts                   # edge-runtime auth gate on every non-public path
 migrations/
   0001_init_snapshots.sql       # snapshots(snapshot_date PK, payload JSONB)
 scripts/
-  migrate.ts                    # idempotent migration runner (Phase 6)
-  test-restlet.mjs              # OAuth 1.0a smoke test (Phase 5)
+  migrate.ts                    # idempotent migration runner; splits multi-statement SQL
+  test-restlet.mjs              # standalone OAuth 1.0a smoke test
 netsuite/
-  roasting_dashboard_restlet.js # SuiteScript 2.1
-vercel.json             # cron config
+  roasting_dashboard_restlet.js # SuiteScript 2.1 (deployed in NetSuite File Cabinet)
+public/
+  gc-logo.svg                   # GC mark rendered in the root layout (raster PNG wrapped in SVG)
+fixtures/                       # real RESTlet response bodies + expected calc output
+context/                        # this folder
+vercel.json                     # cron config — /api/refresh at 0 9 * * *
 ```
 
 ## NetSuite integration
@@ -119,11 +134,12 @@ The same script handles all three saved searches; we just call it three times wi
 
 ### Refresh flow
 
-1. Vercel Cron fires `/api/refresh` daily at 4am EST.
-2. Refresh handler calls the RESTlet three times (one per saved search), each with TBA-signed OAuth 1.0a headers.
-3. The three JSON payloads are passed into the calc (`lib/calc.ts`).
-4. The result (two tables) is written to Postgres with a date stamp.
-5. The dashboard page reads the latest snapshot from Postgres on load — never hits NetSuite live.
+1. **Scheduled:** Vercel Cron fires `/api/refresh` daily at 4am EST / 5am EDT with `Authorization: Bearer ${CRON_SECRET}`.
+2. **Ad-hoc:** Logged-in users can click "Refresh now" in the dashboard header; the client component fetches the same `/api/refresh` same-origin so the `dashboard_session` cookie authenticates the call. The route accepts either bearer or session-cookie auth (see [`app/api/refresh/route.ts`](../app/api/refresh/route.ts) `isAuthorized()`).
+3. Refresh handler calls the RESTlet three times (one per saved search), each with TBA-signed OAuth 1.0a headers.
+4. The three JSON payloads are passed into the calc (`lib/calc.ts`).
+5. The result (two tables) is upserted into Postgres keyed by today's `America/New_York` date — `ON CONFLICT (snapshot_date) DO UPDATE`, so an intra-day refresh overwrites that day's row.
+6. The dashboard page reads the snapshot from Postgres on load — never hits NetSuite live.
 
 ## Calc logic
 
@@ -206,6 +222,26 @@ Format: `{BLEND_CODE}-{TYPE}{SIZE}`
 
 `parseSku(sku)` returns `{ blendCode, type: 'ground'|'whole', sizeOz }` for standard SKUs and `null` for off-pattern SKUs (e.g., `GCDG08-Gx3`). Off-pattern items appear in Table 2 as-is but are excluded from the bag-lbs aggregation in Table 1; the UI surfaces a warning when this happens.
 
+## Historical lookup
+
+The dashboard URL supports `?date=YYYY-MM-DD` to view any past snapshot. Invalid or absent param falls through to the latest snapshot. The header renders prev / next arrows + a native date input (a small client component so onChange can navigate immediately) + a "Latest" button when off-latest. Arrows are constrained to dates with recorded snapshots — picking a date with no snapshot shows a contextual empty state with a back-to-latest affordance. Boundary data (prev/next/earliest/latest) is fetched alongside the snapshot in a single round trip via `getSnapshotDateBoundaries()`.
+
 ## Auth
 
-Single shared password, stored in Vercel as `DASHBOARD_PASSWORD`. Middleware-based gate on every route. Plain enough that a small team can share access; can swap for Google SSO later if needs change.
+Single shared password, stored in Vercel as `DASHBOARD_PASSWORD`. Plain enough that a small team can share access; could be swapped for Shopify SSO if/when the team weighs in (see [`phases.md`](phases.md) parked work).
+
+Session cookie is HMAC-SHA256 signed with `DASHBOARD_PASSWORD` as the key — meaning **rotating the password automatically invalidates all sessions**. Verification runs on the edge runtime via Web Crypto. Cookie attributes: HttpOnly, SameSite=Lax, 30-day Max-Age, Secure in production. Constant-time compare on the HMAC tag.
+
+[`middleware.ts`](../middleware.ts) gates everything except `/login`, `/api/login`, `/api/logout`, and `/api/refresh` (which has its own bearer-token gate via `CRON_SECRET` and must stay middleware-public so Vercel Cron can hit it).
+
+## Branding
+
+- Brand blue `#2b27e7` is registered as a Tailwind v4 theme variable in [`app/globals.css`](../app/globals.css):
+  ```css
+  @theme {
+    --color-grace-blue: #2b27e7;
+  }
+  ```
+  Generates utility classes `bg-grace-blue`, `text-grace-blue`, `border-grace-blue`, plus opacity variants like `bg-grace-blue/5` and `bg-grace-blue/15` used for column-tinting and row-hover.
+- Table headers are solid grace-blue with white text. Action columns ("How much to roast" / "How much to bag" in the blend table, "To assemble" in the item table) get a faint tint by default and bold blue numerals so they visually pop vs. passthrough columns. Row hover applies a stronger tint via `group-hover`.
+- GC logo lives at [`public/gc-logo.svg`](../public/gc-logo.svg) and is rendered top-center on every page in the root layout at 80×80px, wrapped in a link to `/`. The committed asset is a PNG embedded in an SVG wrapper (raster export with `.svg` extension) — fine for display; swap for a true vector if one becomes available.

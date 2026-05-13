@@ -6,6 +6,7 @@ import {
   type ItemRow,
 } from "@/lib/db";
 import { DatePicker } from "./_components/DatePicker";
+import { RefreshButton } from "./_components/RefreshButton";
 
 export const dynamic = "force-dynamic";
 
@@ -47,14 +48,17 @@ export default async function Home({
           <h1 className="text-3xl font-semibold tracking-tight">
             Daily Roasting Dashboard
           </h1>
-          <form method="POST" action="/api/logout">
-            <button
-              type="submit"
-              className="text-sm text-stone-500 hover:text-stone-900 hover:underline"
-            >
-              Sign out
-            </button>
-          </form>
+          <div className="flex items-center gap-4">
+            <RefreshButton />
+            <form method="POST" action="/api/logout">
+              <button
+                type="submit"
+                className="text-sm text-stone-500 hover:text-stone-900 hover:underline"
+              >
+                Sign out
+              </button>
+            </form>
+          </div>
         </div>
 
         <div className="mt-3 flex flex-wrap items-center gap-3 text-sm">

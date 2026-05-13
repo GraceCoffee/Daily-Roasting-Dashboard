@@ -26,7 +26,7 @@ npm run dev                   # http://localhost:3000
 | `npm run dev` | Next.js dev server |
 | `npm run build` | Production build |
 | `npm run typecheck` | `tsc --noEmit` |
-| `npm test` | Vitest (calc unit tests, lands in Phase 7) |
+| `npm test` | Vitest — calc + SKU parser unit tests against captured RESTlet fixtures |
 | `npm run db:migrate` | Apply pending SQL migrations from `migrations/` |
 | `npm run smoke:restlet` | OAuth-1.0a-signed test call to the NetSuite RESTlet (see `scripts/test-restlet.mjs`) |
 

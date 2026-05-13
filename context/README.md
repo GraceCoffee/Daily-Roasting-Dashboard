@@ -4,16 +4,16 @@ This folder is the canonical project context for the Daily Roasting Dashboard. I
 
 ## Current status
 
-**🚀 Shipped. Production URL: https://daily-roasting-dashboard.vercel.app/** — awaiting first automated cron cycle (next 5am EDT).
+**🚀 Shipped. Production URL: https://daily-roasting-dashboard.vercel.app/**
 
-Phase 9 done: Edge-runtime middleware ([`middleware.ts`](../middleware.ts)) gates everything except `/login`, `/api/login`, `/api/logout`, and `/api/refresh` (which has its own bearer-token gate). Session is an HMAC-SHA256 cookie signed with `DASHBOARD_PASSWORD` (so rotating it invalidates all sessions), Web-Crypto based for edge compatibility, 30-day expiry, HttpOnly + SameSite=Lax. Dashboard page ([`app/page.tsx`](../app/page.tsx)) is server-rendered, reads the latest snapshot, renders two tables + warnings banner + empty/error states.
+Phases 1–10 walked the build from "decide the stack" to "live in production." Phases 11 + 12 are post-ship UI extensions added the same evening: a historical date selector (`?date=YYYY-MM-DD` with prev/next arrows + native date input) and Grace brand styling (brand blue `#2b27e7` defined as a Tailwind theme variable, applied to table headers, action-column emphasis, and row hover; GC logo at [`public/gc-logo.svg`](../public/gc-logo.svg) rendered top-center on every page). Phase 13 added a "Refresh now" button next to Sign out that calls `/api/refresh` on demand — the same endpoint Vercel Cron hits — gated by the user's existing session cookie (the route now accepts either Bearer `CRON_SECRET` for cron or a valid `dashboard_session` cookie for logged-in users).
 
-Phase 10 done: Vercel project linked to `GraceCoffee/Daily-Roasting-Dashboard` under the **Grace Coffee Official** team. Neon Postgres attached via Vercel's native integration (env-var prefix set to `DATABASE` so vars are `DATABASE_URL` / `DATABASE_URL_UNPOOLED`). 9 env vars set in Vercel (3 non-sensitive NetSuite IDs across all envs; 4 NetSuite TBA secrets + `DASHBOARD_PASSWORD` + `CRON_SECRET` sensitive on Production+Preview). Migration applied to prod Neon via `npm run db:migrate` after fixing the runner to split multi-statement SQL files (Neon HTTP driver only accepts one statement per call). First manual seed via `/api/refresh` returned `{ ok: true, blendCount: 3, itemCount: 5, warnings: [] }` and Ryan confirmed the numbers match operational expectation in-browser.
+The full backend pipeline is verified end-to-end: NetSuite RESTlet → calc → Neon snapshot → server-rendered dashboard. First manual seed via `/api/refresh` returned `{ ok: true, blendCount: 3, itemCount: 5, warnings: [] }` and Ryan confirmed the numbers match operational expectation.
 
-**Open follow-up:** Verify the 09:00 UTC cron fires tomorrow morning and a fresh `2026-05-13`-dated snapshot lands. Passive — just check the dashboard tomorrow morning. If it doesn't, dig into Vercel → Logs → Cron Jobs.
-
-**Other follow-ups (none blocking):**
-- Saved search 3084 Subsidiary filter — ✅ done during Phase 10.
+**Open follow-ups:**
+- ⏳ **Verify the 09:00 UTC cron fires tomorrow morning** (= 5am EDT) and a fresh `2026-05-13`-dated snapshot lands. Passive — just open the dashboard tomorrow morning. If it doesn't, dig into Vercel → Logs → Cron Jobs.
+- 🅿️ **Shopify integration deferred** — Ryan wants team feedback before picking SSO-via-OAuth vs. embedded-Shopify-App. Not started.
+- (Optional) The provided `public/gc-logo.svg` is a PNG-wrapped-in-SVG (raster export with .svg extension). Display works fine; swap for a true vector if/when one exists.
 
 ## Quick decisions summary
 
